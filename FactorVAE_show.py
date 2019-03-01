@@ -4,7 +4,44 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.gridspec as gridspec
+import torch
+from torch.autograd import Variable
+import gc
 
+def show_active_units(z_dim, dataset_loader, datasetname, encoder, var_threshold):
+	image_size = 64
+	N = len(dataset_loader.dataset)  # number of data samples
+	K = z_dim				 # number of latent variables
+	# nparams = 2 #vae.q_dist.nparams
+	# vae.eval()
+
+	# print('Computing q(z|x) distributions.')
+	qz_params = torch.Tensor(N, K)
+
+	n = 0
+	for xs in dataset_loader:
+		if datasetname == 'MNIST':
+			image_size = 28
+			xs = xs[0]
+		batch_size = xs.size(0)
+		xs = Variable(xs.view(batch_size, 1, image_size, image_size).cuda(), volatile=True)
+		z = encoder(xs)
+		# print('z size: ',z.size())
+		qz_params[n:n + batch_size] = z[:,0:z_dim].data
+		n += batch_size
+
+	del dataset_loader
+	gc.collect()
+
+	var = torch.std(qz_params.contiguous().view(N, K), dim=0).pow(2)
+	print('var: ',var)
+	# print('var')
+	# print(var)
+	# 使用方差来判断是不是大于阈值来进行判断该维度中是不是有信息
+	active_units = torch.arange(0, K)[var > var_threshold].long()
+	print('Active units: ' + ','.join(map(str, active_units.tolist())))
+	n_active = len(active_units)
+	print('Number of active units: {}/{}'.format(n_active, z_dim))
 
 
 

@@ -1,7 +1,7 @@
 import argparse
 from FactorVAE_dataset import return_data
 from FactorVAE_model import Encoder_MNIST,Decoder_MNIST,Encoder_3Dchairs,Decoder_3Dchairs
-from FactorVAE_show import showimg,travel_img_showimg
+from FactorVAE_show import showimg,travel_img_showimg, show_active_units
 from FactorVAE_solver import Solver
 
 
@@ -71,10 +71,11 @@ if __name__ == "__main__":
 	parser.add_argument('--z_travese_limit', default=2, type=int, help='z travese limit(dimension max and min)')
 	parser.add_argument('--z_travese_interval', default=0.1, type=float, help='z travese interval(dimension interval)')
 	parser.add_argument('--z_travese_number_per_line', default=10, type=int, help='z travese number displayed per line')
+	parser.add_argument('--var_threshold', default=5e-2, type=float, help='z active units threshold')
 	args = parser.parse_args()
 
 	args.local = True
-	args.datasetname = '3Dchairs'
+	args.datasetname = 'MNIST'
 	args.istrain = False
 	args.z_travese_sample_imgth = 66
 	# print('args.z_travese_sample_imgth: ',args.z_travese_sample_imgth)
@@ -84,7 +85,7 @@ if __name__ == "__main__":
 		args.result_path_all_dataset = result_path_all_dataset_local
 	
 	# 定义saved model的地址
-	args.load_model_path = 'E:/pytorch_FactorVAE_result/3Dchairs/3Dchairs_result/'
+	args.load_model_path = 'E:/pytorch_FactorVAE_result/MNIST/MNIST_result_gamma6.4_zdim10_server/'
 
 	# 根据不同的数据集进行定义不同的参数值
 	if args.datasetname == 'MNIST':

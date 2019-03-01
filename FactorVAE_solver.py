@@ -7,7 +7,7 @@ import os
 
 from FactorVAE_dataset import return_data
 from FactorVAE_model import Discriminator,Encoder_MNIST,Decoder_MNIST,Encoder_3Dchairs,Decoder_3Dchairs,Encoder_dsprites,Decoder_dsprites
-from FactorVAE_show import showimg,travel_img_showimg
+from FactorVAE_show import showimg,travel_img_showimg, show_active_units
 
 def mkdir(path):
 	path=path.strip()
@@ -93,6 +93,7 @@ class Solver(object):
 		self.z_travese_limit = args.z_travese_limit
 		self.z_travese_interval = args.z_travese_interval
 		self.z_travese_number_per_line = args.z_travese_number_per_line
+		self.var_threshold = args.var_threshold
 		# result
 		self.generated_images_path = self.result_path_current_dataset + 'generated_images/'
 		self.travese_z_path = args.load_model_path + 'travese_z_'+str(self.z_travese_sample_imgth)+'/'
@@ -223,6 +224,13 @@ class Solver(object):
 					sample_x = self.decoder(sample_z)
 					sample_x = sample_x.squeeze()
 					showimg(sample_x,self.train_step,'sample',self.datasetname,self.generated_images_path,self.show_img_step)
+
+
+					# show active units
+					show_active_units(self.z_dim, self.trainloader, self.datasetname, self.encoder, self.var_threshold)
+					
+
+
 				if self.train_step % self.save_model_step == self.save_model_step - 1:
 					# model save
 					model_state = {'encoder':self.encoder,'decoder':self.decoder}
@@ -247,6 +255,9 @@ class Solver(object):
 		self.decoder = checkpoint['model_state']['decoder']
 		print('z_dim:',self.z_dim)
 		print('tc_gamma_weight:',self.tc_gamma_weight)
+
+		# 输出有几个active的units
+		show_active_units(self.z_dim, self.trainloader, self.datasetname, self.encoder, self.var_threshold)
 
 		print('travel start')
 		x_sample = self.trainloader.dataset.__getitem__(self.z_travese_sample_imgth)[0]
